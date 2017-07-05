@@ -1,0 +1,27 @@
+#!/bin/sh
+
+#This script will monitor the disk usage and accordingly you can set the cron jobs.
+
+#!/bin/sh
+
+if [ $# -ne 1 ] ; then
+        echo "Illegal Number of parameters.  You should run script as <scriptname> <limit> eg: monitorDisk.sh 80"
+        exit 1
+fi
+
+limit=$1  # limit has to be given as an argument. If disk space is greater than $limit, then we will get an alert.
+
+df | sed '1d;$d' | sed s/%//g | grep -vE 'tmpfs'> temp.out # temp.out contains will contain the output of the df command without the header line.
+
+while read line ; do
+diskName=`echo $line | awk '{print $1}'`        # read first field into disName which comtains disks' name
+usePer=`echo $line | awk '{print $5}'`          # read 5th field into userPer which contains used disk space percentage.
+
+if [ $usePer -ge $limit ] ;  then               # checking used space with limit
+        echo "Memory out of space for $diskName. It is greater than $limit% which is $usePer% now."
+fi
+
+done < temp.out
+
+rm -rf temp.out                                 # removing temporary file.
+
